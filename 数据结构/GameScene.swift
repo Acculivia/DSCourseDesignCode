@@ -58,7 +58,7 @@ class GameScene: SKScene {
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         let location = touches.first!.locationInNode(self)
         let split = (rightPosition - leftPosition) / CGFloat(barAmount - 1)
-        let index = Int(location.x - leftPosition) / Int(split)
+        let index = Int(location.x + 15 - leftPosition) / Int(split)
         let node = nodeAtPoint(location)
         if(node.name != nil){
             switch node.name!{
@@ -67,6 +67,7 @@ class GameScene: SKScene {
                 controlAccordingToNode(node as! SKLabelNode)
                 
             case "bar":
+                print(index)
                 selectedBar = index
                 selectShape.position = nodeAtPoint(location).position
                 selectShape.alpha = 1
@@ -96,6 +97,7 @@ class GameScene: SKScene {
             }))
             selectShape.alpha = 0
             selectedBar = nil
+            signs = [(start:Int, end:Int, position:CGFloat, sign:SKShapeNode)]()
             
             for bar in bars{bar.fillColor = UIColor.whiteColor()}
             
@@ -114,14 +116,43 @@ class GameScene: SKScene {
         signs = (signs.sort{(a:(start: Int, end: Int, position: CGFloat, sign: SKShapeNode), b:(start: Int, end: Int, position: CGFloat, sign: SKShapeNode)) -> Bool in
             a.position > b.position})
         
+        var l = [Int]()
+        
+        for i in 0..<signs.count{
+            for j in 0..<signs.count{
+                if abs(signs[i].position - signs[j].position) <= 10{
+                    if signs[i].start == signs[j].end || signs[j].start == signs[i].end{
+                        if !l.contains(i){l.append(i)}
+                        if !l.contains(j){l.append(j)}
+                    }
+                }
+            }
+        }
+        
+        for i in l{
+            signs[i].position = -99999
+        }
+        
+        signs = (signs.sort{(a:(start: Int, end: Int, position: CGFloat, sign: SKShapeNode), b:(start: Int, end: Int, position: CGFloat, sign: SKShapeNode)) -> Bool in
+            a.position > b.position})
+        
+        for i in signs{
+            print(i.position)
+        }
+        
         var index = selectedBar!
         
         for bar in signs{
+            if bar.position == -99999{break}
             if(bar.start == index){
                 results.append(bar.sign)
                 index = bar.end
+            }else if(bar.end == index){
+                results.append(bar.sign)
+                index = bar.start
             }
         }
+        
         for bar in results{
             bar.fillColor = UIColor.yellowColor()
         }
